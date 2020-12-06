@@ -2,6 +2,7 @@ defmodule DigestApiWeb.Router do
   use DigestApiWeb, :router
 
   pipeline :api do
+    plug CORSPlug, origin: "*"
     plug :accepts, ["json"]
     plug DigestApiWeb.ApiAuthPlug, otp_app: :digest_api
   end
@@ -13,13 +14,19 @@ defmodule DigestApiWeb.Router do
   scope "/api", DigestApiWeb do
     pipe_through :api
     resources "/registration", RegistrationController, singleton: true, only: [:create]
+    options "/registration", RegistrationController, :options
+    options "/session", SessionController, :options
     resources "/session", SessionController, singleton: true, only: [:create, :delete]
+    options "/session/renew", SessionController, :options
     post "/session/renew", SessionController, :renew
   end
   scope "/api", DigestApiWeb do
     pipe_through [:api, :api_protected]
     resources "/articles", ArticleController, except: [:new, :edit]
+    options "/articles", ArticleController, :options
+    options "/articles/topic/:topic", ArticleController, :options
     get "/articles/topic/:topic", ArticleController, :indexTopic
+    options "/articles/source/:source", ArticleController, :options
     get "/articles/source/:source", ArticleController, :indexSource
   end
 
